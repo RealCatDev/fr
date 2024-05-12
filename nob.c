@@ -9,7 +9,7 @@ const char *build_path = "./build/";
 const char *target = "./build/libfr.a";
 
 #define CXXFLAGS "-Wall", "-Wpedantic", "-std=c++17"
-#define INCLUDES "-I./include/", "-I"VULKAN_SDK_PATH"Include/", "-I"GLFW_PATH"include/", "-I"GLM_PATH"/"
+#define INCLUDES "-I"FR_PATH"include/", "-I"VULKAN_SDK_PATH"Include/", "-I"GLFW_PATH"include/", "-I"GLM_PATH"/"
 #define LIBRARIES "-L"VULKAN_SDK_PATH"Lib/", "-lvulkan-1", "-L"GLFW_PATH"build/src/", "-lglfw3", "-lgdi32"
 
 int compile() {
