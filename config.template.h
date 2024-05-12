@@ -10,4 +10,7 @@
 // Path to glm
 #define GLM_PATH "<GLM_PATH>"
 
+// Root path for FR
+#define FR_PATH "./"
+
 #endif // _CONFIG_H_

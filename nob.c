@@ -3,7 +3,7 @@
 
 #include "./config.h"
 
-const char *src_path = "./src/";
+const char *src_path = FR_PATH"src/";
 const char *build_path = "./build/";
 
 const char *target = "./build/libfr.a";
