@@ -1,0 +1,5 @@
+build/
+*.exe*
+config.h
+*.spv
+.vscode/
