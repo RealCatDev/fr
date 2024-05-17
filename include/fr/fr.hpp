@@ -196,7 +196,7 @@ namespace fr {
     void cleanup();
   private:
     VkShaderModule mModule = VK_NULL_HANDLE;
-    VkPipelineShaderStageCreateInfo mStageInfo;
+    VkPipelineShaderStageCreateInfo mStageInfo{};
 
     VkDevice mDevice = VK_NULL_HANDLE;
   };
@@ -284,43 +284,74 @@ namespace fr {
 
     void setName(frRenderer *renderer, const char *name);
   public:
-    void addShader(frShader *shader) { mShaders.push_back(shader); }
+    void addShader(frShader *shader) { mShaders.push_back(shader->mStageInfo); }
     void addDescriptor(frDescriptorLayout *layout) { mDescLayouts.push_back(layout); }
 
     template <typename vert>
     void setVertexInputState() {
       std::vector<VkVertexInputAttributeDescription> attributes = vert::getAttributeDescriptions();
       auto binding = vert::getBindingDescription();
-      VkPipelineVertexInputStateCreateInfo info = {
+      VkPipelineVertexInputStateCreateInfo *info = new VkPipelineVertexInputStateCreateInfo({
         VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO, VK_NULL_HANDLE, 0,
         1, binding,
         static_cast<uint32_t>(attributes.size()), attributes.data()
-      };
+      });
 
       mVertexInputState = info;
     }
     
-    void setInputAssemblyState(VkPipelineInputAssemblyStateCreateInfo info) { mInputAssemblyState = info; }
-    void setTessellationState(VkPipelineTessellationStateCreateInfo info)   { mTessellationState = info; }
-    void setViewportState(VkPipelineViewportStateCreateInfo info)           { mViewportState = info; }
-    void setRasterizationState(VkPipelineRasterizationStateCreateInfo info) { mRasterizationState = info; }
-    void setMultisampleInfo(VkPipelineMultisampleStateCreateInfo info)      { mMultisampleInfo = info; }
-    void setDepthStencilState(VkPipelineDepthStencilStateCreateInfo info)   { mDepthStencilState = info; }
-    void setColorBlendState(VkPipelineColorBlendStateCreateInfo info)       { mColorBlendState = info; }
-    void setDynamicState(VkPipelineDynamicStateCreateInfo info)             { mDynamicState = info; }
-  private:
-    std::vector<frShader *> mShaders;
-    std::vector<frDescriptorLayout *> mDescLayouts;
+    void setInputAssemblyState(VkPipelineInputAssemblyStateCreateInfo info) {
+      mInputAssemblyState = new VkPipelineInputAssemblyStateCreateInfo();
+      memcpy(mInputAssemblyState, &info, sizeof(info));
+    }
 
-    VkPipelineVertexInputStateCreateInfo   mVertexInputState{};
-    VkPipelineInputAssemblyStateCreateInfo mInputAssemblyState{};
-    VkPipelineTessellationStateCreateInfo  mTessellationState{};
-    VkPipelineViewportStateCreateInfo      mViewportState{};
-    VkPipelineRasterizationStateCreateInfo mRasterizationState{};
-    VkPipelineMultisampleStateCreateInfo   mMultisampleInfo{};
-    VkPipelineDepthStencilStateCreateInfo  mDepthStencilState{};
-    VkPipelineColorBlendStateCreateInfo    mColorBlendState{};
-    VkPipelineDynamicStateCreateInfo       mDynamicState{};
+    void setTessellationState(VkPipelineTessellationStateCreateInfo info) {
+      mTessellationState = new VkPipelineTessellationStateCreateInfo();
+      memcpy(mTessellationState, &info, sizeof(info));
+    }
+
+    void setViewportState(VkPipelineViewportStateCreateInfo info) {
+      mViewportState = new VkPipelineViewportStateCreateInfo();
+      memcpy(mViewportState, &info, sizeof(info));
+    }
+
+    void setRasterizationState(VkPipelineRasterizationStateCreateInfo info) {
+      mRasterizationState = new VkPipelineRasterizationStateCreateInfo();
+      memcpy(mRasterizationState, &info, sizeof(info));
+    }
+
+    void setMultisampleInfo(VkPipelineMultisampleStateCreateInfo info) {
+      mMultisampleInfo = new VkPipelineMultisampleStateCreateInfo();
+      memcpy(mMultisampleInfo, &info, sizeof(info));
+    }
+
+    void setDepthStencilState(VkPipelineDepthStencilStateCreateInfo info) {
+      mDepthStencilState = new VkPipelineDepthStencilStateCreateInfo();
+      memcpy(mDepthStencilState, &info, sizeof(info));
+    }
+
+    void setColorBlendState(VkPipelineColorBlendStateCreateInfo info) {
+      mColorBlendState = new VkPipelineColorBlendStateCreateInfo();
+      memcpy(mColorBlendState, &info, sizeof(info));
+    }
+
+    void setDynamicState(VkPipelineDynamicStateCreateInfo info) {
+      mDynamicState = new VkPipelineDynamicStateCreateInfo();
+      memcpy(mDynamicState, &info, sizeof(info));
+    }
+  private:
+    std::vector<VkPipelineShaderStageCreateInfo> mShaders{};
+    std::vector<frDescriptorLayout*> mDescLayouts{};
+
+    VkPipelineVertexInputStateCreateInfo   *mVertexInputState = VK_NULL_HANDLE;
+    VkPipelineInputAssemblyStateCreateInfo *mInputAssemblyState = VK_NULL_HANDLE;
+    VkPipelineTessellationStateCreateInfo  *mTessellationState = VK_NULL_HANDLE;
+    VkPipelineViewportStateCreateInfo      *mViewportState = VK_NULL_HANDLE;
+    VkPipelineRasterizationStateCreateInfo *mRasterizationState = VK_NULL_HANDLE;
+    VkPipelineMultisampleStateCreateInfo   *mMultisampleInfo = VK_NULL_HANDLE;
+    VkPipelineDepthStencilStateCreateInfo  *mDepthStencilState = VK_NULL_HANDLE;
+    VkPipelineColorBlendStateCreateInfo    *mColorBlendState = VK_NULL_HANDLE;
+    VkPipelineDynamicStateCreateInfo       *mDynamicState = VK_NULL_HANDLE;
   private:
     VkPipelineLayout mLayout;
     VkPipeline mPipeline;

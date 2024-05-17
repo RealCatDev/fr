@@ -774,7 +774,7 @@ namespace fr {
 
   void frPipeline::initialize(frRenderer *renderer, frRenderPass *renderPass) {
     std::vector<VkPipelineShaderStageCreateInfo> stages{};
-    for (auto shader : mShaders) stages.push_back(shader->mStageInfo);
+    for (auto shader : mShaders) stages.push_back(shader);
 
     { // Create PipelineLayout
       std::vector<VkDescriptorSetLayout> layouts = {};
@@ -793,14 +793,24 @@ namespace fr {
       VkGraphicsPipelineCreateInfo createInfo = {
         VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO, VK_NULL_HANDLE, 0,
         static_cast<uint32_t>(stages.size()), stages.data(),
-        &mVertexInputState, &mInputAssemblyState, &mTessellationState, &mViewportState, &mRasterizationState, 
-        &mMultisampleInfo, &mDepthStencilState, &mColorBlendState, &mDynamicState, 
+        mVertexInputState, mInputAssemblyState, mTessellationState, mViewportState, mRasterizationState, 
+        mMultisampleInfo, mDepthStencilState, mColorBlendState, mDynamicState, 
         mLayout, renderPass->mRenderPass, 0,
         VK_NULL_HANDLE, 0,
       };
 
       VK_WRAPPER(vkCreateGraphicsPipelines(renderer->mDevice, VK_NULL_HANDLE, 1, &createInfo, nullptr, &mPipeline));
     }
+
+    if (mVertexInputState) delete mVertexInputState;
+    if (mInputAssemblyState) delete mInputAssemblyState;
+    if (mTessellationState) delete mTessellationState;
+    if (mViewportState) delete mViewportState;
+    if (mRasterizationState) delete mRasterizationState;
+    if (mMultisampleInfo) delete mMultisampleInfo;
+    if (mDepthStencilState) delete mDepthStencilState;
+    if (mColorBlendState) delete mColorBlendState;
+    if (mDynamicState) delete mDynamicState;
 
     mDevice = renderer->mDevice;
   }
