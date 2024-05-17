@@ -289,12 +289,11 @@ namespace fr {
 
     template <typename vert>
     void setVertexInputState() {
-      std::vector<VkVertexInputAttributeDescription> attributes = vert::getAttributeDescriptions();
-      auto binding = vert::getBindingDescription();
+      mAttributes = vert::getAttributeDescriptions();
       VkPipelineVertexInputStateCreateInfo *info = new VkPipelineVertexInputStateCreateInfo({
         VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO, VK_NULL_HANDLE, 0,
-        1, binding,
-        static_cast<uint32_t>(attributes.size()), attributes.data()
+        1, vert::getBindingDescription(),
+        static_cast<uint32_t>(mAttributes.size()), mAttributes.data()
       });
 
       mVertexInputState = info;
@@ -340,6 +339,7 @@ namespace fr {
       memcpy(mDynamicState, &info, sizeof(info));
     }
   private:
+    std::vector<VkVertexInputAttributeDescription> mAttributes{};
     std::vector<VkPipelineShaderStageCreateInfo> mShaders{};
     std::vector<frDescriptorLayout*> mDescLayouts{};
 
