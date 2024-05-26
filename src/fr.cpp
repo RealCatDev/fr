@@ -10,6 +10,8 @@
 
 #include <cmath>
 
+#undef max
+
 namespace fr {
 
   #define VK_REPORT(call)                                            \
@@ -1044,6 +1046,25 @@ namespace fr {
       createInfo.ppEnabledLayerNames = mLayers.data();
       createInfo.enabledExtensionCount = static_cast<uint32_t>(mExtensions.size());
       createInfo.ppEnabledExtensionNames = mExtensions.data();
+
+      uint32_t extensionCount = 0;
+      vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
+      std::vector<VkExtensionProperties> extensions(extensionCount);
+      vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions.data());
+
+      std::vector<const char *> requiredExtensions = mExtensions;
+      for (const auto& extension : extensions) {
+        for (auto ext: requiredExtensions) {
+          if (strcmp(extension.extensionName, ext) == 0) {
+            requiredExtensions.erase(std::find(requiredExtensions.begin(), requiredExtensions.end(), ext));
+          }
+        }
+      }
+
+      if (requiredExtensions.size() > 0) {
+        fprintf(stderr, "Unsupported extensions:\n");
+        for (auto ext: requiredExtensions) fprintf(stderr, "  - %s\n", ext);
+      }
 
       VK_WRAPPER(vkCreateInstance(&createInfo, nullptr, &mInstance));
     }
