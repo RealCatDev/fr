@@ -718,7 +718,7 @@ namespace fr {
   }
 
   void frDescriptor::cleanup() {
-    vkFreeDescriptorSets(mDevice, mPool, 1, &mSet);
+    if (mSet) vkFreeDescriptorSets(mDevice, mPool, 1, &mSet);
   }
   // =-=-=-=-=-=-=-=-=-=-=-=-=-=-[-frDescriptor]-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
@@ -779,13 +779,10 @@ namespace fr {
     for (auto shader : mShaders) stages.push_back(shader);
 
     { // Create PipelineLayout
-      std::vector<VkDescriptorSetLayout> layouts = {};
-      for (auto layout : mDescLayouts) layouts.push_back(layout->mLayout);
-
       VkPipelineLayoutCreateInfo createInfo = {
         VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, VK_NULL_HANDLE, 0,
-        static_cast<uint32_t>(layouts.size()), layouts.data(),
-        static_cast<uint32_t>(0), nullptr
+        static_cast<uint32_t>(mDescLayouts.size()), mDescLayouts.data(),
+        static_cast<uint32_t>(mPCRanges.size()), mPCRanges.data()
       };
 
       VK_WRAPPER(vkCreatePipelineLayout(renderer->mDevice, &createInfo, nullptr, &mLayout));
@@ -829,6 +826,10 @@ namespace fr {
   void frPipeline::bindDescriptor(VkCommandBuffer cmdBuf, VkPipelineBindPoint bindPoint, uint32_t firstSet, frDescriptor *descriptor) {
     VkDescriptorSet set = descriptor->mSet;
     vkCmdBindDescriptorSets(cmdBuf, bindPoint, mLayout, firstSet, 1, &set, 0, VK_NULL_HANDLE);
+  }
+
+  void frPipeline::pushConstant(VkCommandBuffer cmdBuf, VkShaderStageFlags stage, uint32_t offset, uint32_t size, const void *value) {
+    vkCmdPushConstants(cmdBuf, mLayout, stage, offset, size, value);
   }
 
   void frPipeline::setName(frRenderer *renderer, const char *name) {

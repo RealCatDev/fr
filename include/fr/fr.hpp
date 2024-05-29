@@ -281,11 +281,13 @@ namespace fr {
 
     void bind(VkCommandBuffer cmdBuf, VkPipelineBindPoint bindPoint);
     void bindDescriptor(VkCommandBuffer cmdBuf, VkPipelineBindPoint bindPoint, uint32_t firstSet, frDescriptor *descriptor);
+    void pushConstant(VkCommandBuffer cmdBuf, VkShaderStageFlags stage, uint32_t offset, uint32_t size, const void *value);
 
     void setName(frRenderer *renderer, const char *name);
   public:
     void addShader(frShader *shader) { mShaders.push_back(shader->mStageInfo); }
-    void addDescriptor(frDescriptorLayout *layout) { mDescLayouts.push_back(layout); }
+    void addDescriptor(frDescriptorLayout *layout) { mDescLayouts.push_back(layout->mLayout); }
+    void addPushConstant(VkPushConstantRange range) { mPCRanges.push_back(range); }
 
     template <typename vert>
     void setVertexInputState() {
@@ -341,7 +343,8 @@ namespace fr {
   private:
     std::vector<VkVertexInputAttributeDescription> mAttributes{};
     std::vector<VkPipelineShaderStageCreateInfo> mShaders{};
-    std::vector<frDescriptorLayout*> mDescLayouts{};
+    std::vector<VkDescriptorSetLayout> mDescLayouts{};
+    std::vector<VkPushConstantRange> mPCRanges{};
 
     VkPipelineVertexInputStateCreateInfo   *mVertexInputState = VK_NULL_HANDLE;
     VkPipelineInputAssemblyStateCreateInfo *mInputAssemblyState = VK_NULL_HANDLE;
