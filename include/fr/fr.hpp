@@ -179,7 +179,10 @@ namespace fr {
     void cleanup();
 
     void setName(frRenderer *renderer, const char *name);
+    void getData(uint8_t* data, size_t size) const;
   private:
+    uint8_t* mData;
+
     VkFramebuffer mFramebuffer = VK_NULL_HANDLE;
 
     VkDevice mDevice = VK_NULL_HANDLE;
