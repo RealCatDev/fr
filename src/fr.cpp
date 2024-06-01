@@ -250,7 +250,7 @@ namespace fr {
       createInfo.extent.height = static_cast<uint32_t>(info.height);
       createInfo.extent.depth = 1;
       createInfo.mipLevels = info.mipLevels;
-      createInfo.arrayLayers = 1;
+      createInfo.arrayLayers = static_cast<uint32_t>(info.layers);
       createInfo.format = info.format;
       createInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
       createInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
@@ -328,7 +328,7 @@ namespace fr {
     barrier.subresourceRange.baseMipLevel = 0;
     barrier.subresourceRange.levelCount = mInfo.mipLevels;
     barrier.subresourceRange.baseArrayLayer = 0;
-    barrier.subresourceRange.layerCount = 1;
+    barrier.subresourceRange.layerCount = static_cast<uint32_t>(mInfo.layers);
     barrier.srcAccessMask = info.srcAccess;
     barrier.dstAccessMask = info.dstAccess;
     
@@ -459,6 +459,12 @@ namespace fr {
     commands->endSingleTime(renderer, cmdBuf);
   }
 
+  void frImage::getData(frRenderer *renderer, uint8_t *data, VkDeviceSize size) {
+    uint8_t *data_ = nullptr; vkMapMemory(renderer->mDevice, mImageMemory, 0, size, 0, (void**)&data_); {
+      memcpy(data, data_, size);
+    } vkUnmapMemory(renderer->mDevice, mImageMemory);
+  }
+
   void frImage::setName(frRenderer *renderer, const char *imageName) {
     { // Set name for mImage
       VkDebugUtilsObjectNameInfoEXT objectNameInfo = {};
@@ -512,13 +518,6 @@ namespace fr {
 
     VK_WRAPPER(vkCreateImageView(mDevice, &createInfo, nullptr, &mImageView));
   }
-
-  void frImage::getData(uint8_t* data, size_t size) const {
-        if (mData && data) {
-            memcpy(data, mData, size);
-        }
-    }
-
 
   bool frImage::hasStencilComponent(VkFormat format) {
     return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
@@ -593,7 +592,7 @@ namespace fr {
     cleanup();
   }
 
-  void frFramebuffer::initialize(frRenderer *renderer, int width, int height, frRenderPass *renderPass, std::vector<frImage *> images) {
+  void frFramebuffer::initialize(frRenderer *renderer, int width, int height, int layers, frRenderPass *renderPass, std::vector<frImage *> images) {
     { // Create Framebuffer
       VkFramebufferCreateInfo createInfo{};
       createInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
@@ -604,9 +603,9 @@ namespace fr {
       std::vector<VkImageView> attachments(images.size());
       for (size_t i = 0; i < images.size(); ++i) attachments[i] = images[i]->mImageView;
       createInfo.pAttachments = attachments.data();
-      createInfo.width = width;
-      createInfo.height = height;
-      createInfo.layers = 1;
+      createInfo.width  = static_cast<uint32_t>(width);
+      createInfo.height = static_cast<uint32_t>(height);
+      createInfo.layers = static_cast<uint32_t>(layers);
 
       VK_WRAPPER(vkCreateFramebuffer(renderer->mDevice, &createInfo, nullptr, &mFramebuffer));
     }

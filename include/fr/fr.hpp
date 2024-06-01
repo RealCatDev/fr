@@ -175,11 +175,10 @@ namespace fr {
     frFramebuffer();
     ~frFramebuffer();
 
-    void initialize(frRenderer *renderer, int width, int height, frRenderPass *renderPass, std::vector<frImage *> images);
+    void initialize(frRenderer *renderer, int width, int height, int layers, frRenderPass *renderPass, std::vector<frImage *> images);
     void cleanup();
 
     void setName(frRenderer *renderer, const char *name);
-    void getData(uint8_t* data, size_t size) const;
   private:
     uint8_t* mData;
 
@@ -440,6 +439,7 @@ namespace fr {
   public:
     struct frImageInfo {
       int width, height;                      // Size of the image.
+      int layers;                             // arrayLayers
       VkFormat format;                        // Format of the image.
       VkImageUsageFlagBits usage;             // Image usage flags
       bool memory;                            // Determine whether create mImageMemory or not.
@@ -470,11 +470,11 @@ namespace fr {
     void transitionLayout(frRenderer *renderer, frCommands *commands, frImageTransitionInfo info);
     void generateMipmaps(frRenderer *renderer, frCommands *commands);
     void copyFromBuffer(frRenderer *renderer, frCommands *commands, frBuffer *buffer, VkDeviceSize size);
+    void getData(frRenderer *renderer, uint8_t *data, VkDeviceSize size);
 
     void setName(frRenderer *renderer, const char *imageName);
   public:
     VkImageView getView() const { return mImageView; }
-
     uint32_t getMipLevels() const { return mInfo.mipLevels; }
   private:
     void createView(frImageInfo info);
