@@ -469,8 +469,8 @@ namespace fr {
 
     void transitionLayout(frRenderer *renderer, frCommands *commands, frImageTransitionInfo info);
     void generateMipmaps(frRenderer *renderer, frCommands *commands);
-    void copyFromBuffer(frRenderer *renderer, frCommands *commands, frBuffer *buffer, VkDeviceSize size);
-    void getData(frRenderer *renderer, uint8_t *data, VkDeviceSize size);
+    void copyFromBuffer(frRenderer *renderer, frCommands *commands, frBuffer *buffer);
+    void copyToBuffer(frRenderer *renderer, frCommands *commands, frBuffer *buffer, VkDeviceSize offset);
 
     void setName(frRenderer *renderer, const char *imageName);
   public:

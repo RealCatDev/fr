@@ -427,7 +427,7 @@ namespace fr {
     commands->endSingleTime(renderer, cmdBuf);
   }
 
-  void frImage::copyFromBuffer(frRenderer *renderer, frCommands *commands, frBuffer *buffer, VkDeviceSize size) {
+  void frImage::copyFromBuffer(frRenderer *renderer, frCommands *commands, frBuffer *buffer) {
     VkCommandBuffer cmdBuf = commands->beginSingleTime();
 
     VkBufferImageCopy region{};
@@ -459,10 +459,36 @@ namespace fr {
     commands->endSingleTime(renderer, cmdBuf);
   }
 
-  void frImage::getData(frRenderer *renderer, uint8_t *data, VkDeviceSize size) {
-    uint8_t *data_ = nullptr; vkMapMemory(renderer->mDevice, mImageMemory, 0, size, 0, (void**)&data_); {
-      memcpy(data, data_, size);
-    } vkUnmapMemory(renderer->mDevice, mImageMemory);
+  void frImage::copyToBuffer(frRenderer *renderer, frCommands *commands, frBuffer *buffer, VkDeviceSize offset) {
+    VkCommandBuffer cmdBuf = commands->beginSingleTime();
+
+    VkBufferImageCopy region{};
+    region.bufferOffset = offset;
+    region.bufferRowLength = 0;
+    region.bufferImageHeight = 0;
+
+    region.imageSubresource.aspectMask = mInfo.imageAspect;
+    region.imageSubresource.mipLevel = 0;
+    region.imageSubresource.baseArrayLayer = 0;
+    region.imageSubresource.layerCount = 1;
+
+    region.imageOffset = {0, 0, 0};
+    region.imageExtent = {
+      static_cast<uint32_t>(mInfo.width), 
+      static_cast<uint32_t>(mInfo.height), 
+      1
+    };
+
+    vkCmdCopyImageToBuffer(
+      cmdBuf,
+      mImage,
+      VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+      buffer->get(),
+      1,
+      &region
+    );
+
+    commands->endSingleTime(renderer, cmdBuf);
   }
 
   void frImage::setName(frRenderer *renderer, const char *imageName) {
