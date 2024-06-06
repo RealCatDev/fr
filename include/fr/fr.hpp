@@ -469,7 +469,7 @@ namespace fr {
 
     void transitionLayout(frRenderer *renderer, frCommands *commands, frImageTransitionInfo info);
     void generateMipmaps(frRenderer *renderer, frCommands *commands);
-    void copyFromBuffer(frRenderer *renderer, frCommands *commands, frBuffer *buffer);
+    void copyFromBuffer(frRenderer *renderer, frCommands *commands, frBuffer *buffer, uint32_t baseArrayLayer);
     void copyToBuffer(frRenderer *renderer, frCommands *commands, frBuffer *buffer, VkDeviceSize offset);
 
     void setName(frRenderer *renderer, const char *imageName);
@@ -477,7 +477,7 @@ namespace fr {
     VkImageView getView() const { return mImageView; }
     uint32_t getMipLevels() const { return mInfo.mipLevels; }
   private:
-    void createView(frImageInfo info);
+    void createView();
 
     bool hasStencilComponent(VkFormat format);
   private:

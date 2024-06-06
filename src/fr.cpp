@@ -279,7 +279,7 @@ namespace fr {
     mInfo = info;
     mDevice = renderer->mDevice;
 
-    createView(info);
+    createView();
   }
 
   void frImage::initialize(frRenderer *renderer, VkImage image, frImageInfo info) {
@@ -305,7 +305,7 @@ namespace fr {
     mInfo = info;
     mDevice = renderer->mDevice;
 
-    createView(info);
+    createView();
   }
 
   void frImage::cleanup() {
@@ -427,7 +427,7 @@ namespace fr {
     commands->endSingleTime(renderer, cmdBuf);
   }
 
-  void frImage::copyFromBuffer(frRenderer *renderer, frCommands *commands, frBuffer *buffer) {
+  void frImage::copyFromBuffer(frRenderer *renderer, frCommands *commands, frBuffer *buffer, uint32_t baseArrayLayer) {
     VkCommandBuffer cmdBuf = commands->beginSingleTime();
 
     VkBufferImageCopy region{};
@@ -437,7 +437,7 @@ namespace fr {
 
     region.imageSubresource.aspectMask = mInfo.imageAspect;
     region.imageSubresource.mipLevel = 0;
-    region.imageSubresource.baseArrayLayer = 0;
+    region.imageSubresource.baseArrayLayer = baseArrayLayer;
     region.imageSubresource.layerCount = 1;
 
     region.imageOffset = {0, 0, 0};
@@ -526,21 +526,21 @@ namespace fr {
     }
   }
 
-  void frImage::createView(frImageInfo info) {
+  void frImage::createView() {
     VkImageViewCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
     createInfo.image = mImage;
     createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-    createInfo.format = info.format;
+    createInfo.format = mInfo.format;
     createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
     createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
     createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
     createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-    createInfo.subresourceRange.aspectMask = info.imageAspect;
+    createInfo.subresourceRange.aspectMask = mInfo.imageAspect;
     createInfo.subresourceRange.baseMipLevel = 0;
-    createInfo.subresourceRange.levelCount = info.mipLevels;
+    createInfo.subresourceRange.levelCount = mInfo.mipLevels;
     createInfo.subresourceRange.baseArrayLayer = 0;
-    createInfo.subresourceRange.layerCount = 1;
+    createInfo.subresourceRange.layerCount = static_cast<uint32_t>(mInfo.layers);
 
     VK_WRAPPER(vkCreateImageView(mDevice, &createInfo, nullptr, &mImageView));
   }
