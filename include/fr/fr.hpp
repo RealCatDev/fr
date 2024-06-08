@@ -375,6 +375,11 @@ namespace fr {
 
     VkCommandBuffer *allocateBuffers(VkCommandBufferLevel level, uint32_t count = 1);
 
+    void beginSingleTimeFrame();
+    void endSingleTimeFrame(frRenderer *renderer);
+    bool singleTimeFrameActive() const { return mSingleTimeCommandBuf; }
+    VkCommandBuffer getSingleTime() { return mSingleTimeCommandBuf?mSingleTimeCommandBuf:beginSingleTime(); }
+
     VkCommandBuffer beginSingleTime();
     void endSingleTime(frRenderer *renderer, VkCommandBuffer cmdBuf);
   public:
@@ -384,7 +389,7 @@ namespace fr {
     static void submit(frRenderer *renderer, VkCommandBuffer cmdBuf, frSynchronization *sync=nullptr);
   private:
     VkCommandPool mPool = VK_NULL_HANDLE;
-
+    VkCommandBuffer mSingleTimeCommandBuf = VK_NULL_HANDLE;
     VkDevice mDevice = VK_NULL_HANDLE;
   };
 

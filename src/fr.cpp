@@ -257,7 +257,7 @@ namespace fr {
       createInfo.usage = info.usage;
       createInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
       createInfo.samples = info.samples;
-      createInfo.flags = 0;
+      createInfo.flags = info.layers>1?VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT:0;
 
       VK_WRAPPER(vkCreateImage(renderer->mDevice, &createInfo, nullptr, &mImage));
     }
@@ -315,7 +315,7 @@ namespace fr {
   }
 
   void frImage::transitionLayout(frRenderer *renderer, frCommands *commands, frImageTransitionInfo info) {
-    VkCommandBuffer cmdBuf = commands->beginSingleTime();
+    VkCommandBuffer cmdBuf = commands->getSingleTime();
 
     VkImageMemoryBarrier barrier{};
     barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -338,7 +338,7 @@ namespace fr {
       0, 0, nullptr, 0, nullptr, 1, &barrier
     );
 
-    commands->endSingleTime(renderer, cmdBuf);
+    if (!commands->singleTimeFrameActive()) commands->endSingleTime(renderer, cmdBuf);
   }
 
   void frImage::generateMipmaps(frRenderer *renderer, frCommands *commands) {
@@ -349,7 +349,7 @@ namespace fr {
       throw fr::frVulkanException("Texture image format does not support linear blitting!");
     }
 
-    VkCommandBuffer cmdBuf = commands->beginSingleTime();
+    VkCommandBuffer cmdBuf = commands->getSingleTime();
     
     VkImageMemoryBarrier barrier{};
     barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -424,11 +424,11 @@ namespace fr {
       0, nullptr,
       1, &barrier);
 
-    commands->endSingleTime(renderer, cmdBuf);
+    if (!commands->singleTimeFrameActive()) commands->endSingleTime(renderer, cmdBuf);
   }
 
   void frImage::copyFromBuffer(frRenderer *renderer, frCommands *commands, frBuffer *buffer, uint32_t baseArrayLayer) {
-    VkCommandBuffer cmdBuf = commands->beginSingleTime();
+    VkCommandBuffer cmdBuf = commands->getSingleTime();
 
     VkBufferImageCopy region{};
     region.bufferOffset = 0;
@@ -456,11 +456,11 @@ namespace fr {
       &region
     );
 
-    commands->endSingleTime(renderer, cmdBuf);
+    if (!commands->singleTimeFrameActive()) commands->endSingleTime(renderer, cmdBuf);
   }
 
   void frImage::copyToBuffer(frRenderer *renderer, frCommands *commands, frBuffer *buffer, VkDeviceSize offset) {
-    VkCommandBuffer cmdBuf = commands->beginSingleTime();
+    VkCommandBuffer cmdBuf = commands->getSingleTime();
 
     VkBufferImageCopy region{};
     region.bufferOffset = offset;
@@ -488,7 +488,7 @@ namespace fr {
       &region
     );
 
-    commands->endSingleTime(renderer, cmdBuf);
+    if (!commands->singleTimeFrameActive()) commands->endSingleTime(renderer, cmdBuf);
   }
 
   void frImage::setName(frRenderer *renderer, const char *imageName) {
@@ -530,7 +530,7 @@ namespace fr {
     VkImageViewCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
     createInfo.image = mImage;
-    createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    createInfo.viewType = mInfo.layers>1?VK_IMAGE_VIEW_TYPE_CUBE:VK_IMAGE_VIEW_TYPE_2D;
     createInfo.format = mInfo.format;
     createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
     createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
@@ -923,6 +923,18 @@ namespace fr {
     return buffers;
   }
 
+  void frCommands::beginSingleTimeFrame() {
+    if (mSingleTimeCommandBuf) return;
+
+    mSingleTimeCommandBuf = beginSingleTime();
+  }
+
+  void frCommands::endSingleTimeFrame(frRenderer *renderer) {
+    if (!mSingleTimeCommandBuf) return;
+    endSingleTime(renderer, mSingleTimeCommandBuf);
+    mSingleTimeCommandBuf = VK_NULL_HANDLE;
+  }
+
   VkCommandBuffer frCommands::beginSingleTime() {
     VkCommandBuffer cmdBuf = allocateBuffers(VK_COMMAND_BUFFER_LEVEL_PRIMARY)[0];
     frCommands::begin(cmdBuf, VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
@@ -1034,13 +1046,13 @@ namespace fr {
   }
 
   void frBuffer::copyFromBuffer(frRenderer *renderer, frCommands *commands, frBuffer *buffer, VkDeviceSize size) {
-    VkCommandBuffer cmdBuf = commands->beginSingleTime();
+    VkCommandBuffer cmdBuf = commands->getSingleTime();
 
     VkBufferCopy copyRegion{};
     copyRegion.size = size;
     vkCmdCopyBuffer(cmdBuf, buffer->mBuffer, mBuffer, 1, &copyRegion);
 
-    commands->endSingleTime(renderer, cmdBuf);
+    if (!commands->singleTimeFrameActive()) commands->endSingleTime(renderer, cmdBuf);
   }
 
   void frBuffer::initialize(frRenderer *renderer, frBufferInfo info, bool bindMemory) {
